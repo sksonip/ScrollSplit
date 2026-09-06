@@ -2,6 +2,10 @@
 
 A lightweight macOS utility that keeps Natural Scrolling on the built-in trackpad while independently reversing vertical scroll direction for an external mouse.
 
+<div align="center">
+  <img src="Resources/docs/images/scrollsplit-settings.png" width="480" alt="ScrollSplit settings window showing active state with all permissions granted" />
+</div>
+
 ---
 
 ## Download
