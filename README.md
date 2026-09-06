@@ -41,19 +41,32 @@ ScrollSplit runs as a lightweight background utility with no Dock icon and no me
 1. Download **ScrollSplit.dmg** from [Releases](https://github.com/sksonip/ScrollSplit/releases/latest).
 2. Open the DMG and drag **ScrollSplit** to your **Applications** folder.
 3. Eject the DMG.
-4. Open **ScrollSplit** from Applications.
+4. Open **ScrollSplit** from your Applications folder.
 
-### First-run Gatekeeper note
+### macOS security warning — what to expect and what to do
 
-> ⚠️ **This release is not Developer ID notarized.** macOS Gatekeeper may block the app on first launch with a message like *"ScrollSplit cannot be opened because Apple cannot check it for malicious software."*
->
-> To approve it:
-> 1. Open **System Settings → Privacy & Security**.
-> 2. Scroll down to the section that mentions ScrollSplit was blocked.
-> 3. Click **Open Anyway**.
-> 4. Confirm in the dialog that appears.
->
-> You only need to do this once. Do **not** disable Gatekeeper globally.
+ScrollSplit v1.0.0 is distributed outside the Mac App Store and is **not Developer ID notarized**. Because of this, macOS Gatekeeper will block the app the first time you open it. **This is expected behaviour — it does not mean macOS has detected malware.**
+
+When you try to open ScrollSplit, you will see a dialog similar to:
+
+> *"ScrollSplit.app" Not Opened — Apple could not verify "ScrollSplit.app" is free of malware that may harm your Mac or compromise your privacy.*
+
+The dialog has two buttons: **Done** and **Move to Bin**.
+
+**Follow these steps to approve the app:**
+
+1. Click **Done** — do **not** click "Move to Bin".
+2. Open **System Settings** (Apple menu → System Settings).
+3. Go to **Privacy & Security**.
+4. Scroll down to the **Security** section. You will see a message that says ScrollSplit was blocked because it is not from an identified developer.
+5. Click **Open Anyway** next to that message.
+6. Authenticate with **Touch ID** or your **Mac password** if prompted.
+7. In the confirmation dialog that appears, click **Open**.
+8. ScrollSplit will launch and show its settings window.
+
+You only need to complete this process once. After approving, ScrollSplit opens normally from Applications.
+
+> ⚠️ Do **not** disable Gatekeeper globally and do **not** use Terminal commands to bypass macOS security. The steps above are the safe, Apple-supported way to open apps that are not distributed through the Mac App Store or notarized.
 
 5. Complete the permission setup that appears on first launch (see [Permissions](#permissions)).
 6. Optionally enable **Launch at Login**.
