@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:ScrollSplit}",
+            "name": "Debug ScrollSplit",
+            "target": "ScrollSplit",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug ScrollSplit"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:ScrollSplit}",
+            "name": "Release ScrollSplit",
+            "target": "ScrollSplit",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release ScrollSplit"
+        }
+    ]
+}

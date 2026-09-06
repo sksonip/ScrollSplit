@@ -1,0 +1,33 @@
+# ===== macOS =====
+.DS_Store
+**/.DS_Store
+.AppleDouble
+.LSOverride
+
+# ===== Xcode / Swift IDE state =====
+# SwiftPM Xcode integration — contains machine-specific user state; never commit
+.swiftpm/
+*.xcuserstate
+xcuserdata/
+DerivedData/
+
+# ===== Build output =====
+.build/
+build/
+dmg-staging/
+
+# ===== Release artifacts (belong in GitHub Releases, not source history) =====
+dist/
+*.dmg
+*.zip
+*.pkg
+
+# ===== Code-signing material (private keys must never be committed) =====
+*.p12
+*.pfx
+*.pem
+*.key
+
+# ===== Environment / secrets =====
+.env
+.env.*
