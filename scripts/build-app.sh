@@ -62,6 +62,7 @@ CLANG_MODULE_CACHE_PATH="$scratch_path/ModuleCache" xcrun swiftc \
     Sources/ScrollSplit/App/AppDelegate.swift \
     Sources/ScrollSplit/App/ReverseScrollingController.swift \
     Sources/ScrollSplit/Settings/AppSettings.swift \
+    Sources/ScrollSplit/Scrolling/MouseScrollAction.swift \
     Sources/ScrollSplit/Scrolling/ScrollSourceClassifier.swift \
     Sources/ScrollSplit/Scrolling/ScrollEventTap.swift \
     Sources/ScrollSplit/Services/PermissionService.swift \

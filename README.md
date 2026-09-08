@@ -29,6 +29,7 @@ ScrollSplit intercepts scroll events at the session level and reverses vertical 
 - **External mouse vertical wheel** — direction reversed independently
 - **Horizontal scrolling** — left unchanged on all devices
 - **Trackpad momentum and gestures** — never modified
+- **Command + mouse wheel** — zooms in when scrolling up and zooms out when scrolling down in apps that support the standard macOS zoom shortcuts
 
 ScrollSplit runs as a lightweight background utility with no Dock icon and no menu-bar icon. Configure it once and leave it running.
 
@@ -45,7 +46,7 @@ ScrollSplit runs as a lightweight background utility with no Dock icon and no me
 
 ### macOS security warning — what to expect and what to do
 
-ScrollSplit v1.0.0 is distributed outside the Mac App Store and is **not Developer ID notarized**. Because of this, macOS Gatekeeper will block the app the first time you open it. **This is expected behaviour — it does not mean macOS has detected malware.**
+ScrollSplit v1.2 is distributed outside the Mac App Store and is **not Developer ID notarized**. Because of this, macOS Gatekeeper will block the app the first time you open it. **This is expected behaviour — it does not mean macOS has detected malware.**
 
 When you try to open ScrollSplit, you will see a dialog similar to:
 

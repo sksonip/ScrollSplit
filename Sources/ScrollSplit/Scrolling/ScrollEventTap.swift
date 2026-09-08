@@ -23,6 +23,7 @@ protocol ScrollEventTapControlling: AnyObject {
 @MainActor
 final class ScrollEventTap: ScrollEventTapControlling {
     private let classifier: ScrollSourceClassifier
+    private let actionResolver = MouseScrollActionResolver()
     private let isReversalEnabled: () -> Bool
     private var tap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
@@ -113,14 +114,55 @@ final class ScrollEventTap: ScrollEventTapControlling {
             return Unmanaged.passUnretained(event)
         }
 
-        guard type == .scrollWheel,
-              isReversalEnabled(),
-              classifier.classify(event) == .mouseWheel else {
+        guard type == .scrollWheel, isReversalEnabled() else {
             return Unmanaged.passUnretained(event)
         }
 
-        reverseVerticalFields(of: event)
-        return Unmanaged.passUnretained(event)
+        let action = actionResolver.resolve(
+            source: classifier.classify(event),
+            flags: event.flags,
+            verticalDelta: verticalDelta(of: event)
+        )
+
+        switch action {
+        case .passThrough:
+            return Unmanaged.passUnretained(event)
+        case .reverseVertical:
+            reverseVerticalFields(of: event)
+            return Unmanaged.passUnretained(event)
+        case .zoomIn:
+            postZoomKey(keyCode: 24) // Command-= (the standard macOS Zoom In shortcut)
+            return nil
+        case .zoomOut:
+            postZoomKey(keyCode: 27) // Command--
+            return nil
+        }
+    }
+
+    private func verticalDelta(of event: CGEvent) -> Double {
+        let lineDelta = event.getIntegerValueField(.scrollWheelEventDeltaAxis1)
+        if lineDelta != 0 {
+            return Double(lineDelta)
+        }
+
+        let fixedDelta = event.getDoubleValueField(.scrollWheelEventFixedPtDeltaAxis1)
+        if fixedDelta != 0 {
+            return fixedDelta
+        }
+
+        return Double(event.getIntegerValueField(.scrollWheelEventPointDeltaAxis1))
+    }
+
+    private func postZoomKey(keyCode: CGKeyCode) {
+        guard let keyDown = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: true),
+              let keyUp = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: false) else {
+            return
+        }
+
+        keyDown.flags = .maskCommand
+        keyUp.flags = .maskCommand
+        keyDown.post(tap: .cghidEventTap)
+        keyUp.post(tap: .cghidEventTap)
     }
 
     private func reverseVerticalFields(of event: CGEvent) {
