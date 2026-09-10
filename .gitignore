@@ -27,6 +27,7 @@ dist/
 *.pfx
 *.pem
 *.key
+.sparkle-private-key
 
 # ===== Environment / secrets =====
 .env

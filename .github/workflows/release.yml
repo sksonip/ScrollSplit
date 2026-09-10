@@ -1,0 +1,86 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish signed update
+    runs-on: macos-latest
+    timeout-minutes: 30
+    env:
+      SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Validate version and update configuration
+        run: sh scripts/validate-release.sh "$GITHUB_REF_NAME"
+
+      - name: Require Sparkle signing key
+        run: |
+          if [ -z "$SPARKLE_PRIVATE_KEY" ]; then
+            echo "SPARKLE_PRIVATE_KEY repository secret is required" >&2
+            exit 1
+          fi
+
+      - name: Build app and DMG
+        run: |
+          make app
+          sh scripts/validate-release.sh "$GITHUB_REF_NAME" 1
+          sh scripts/create-dmg.sh
+
+      - name: Package and sign Sparkle update
+        run: |
+          version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist)
+          archive_name="ScrollSplit-${version}.zip"
+          release_dir="$RUNNER_TEMP/release"
+          feed_dir="$RUNNER_TEMP/feed"
+          mkdir -p "$release_dir" "$feed_dir"
+
+          ditto -c -k --sequesterRsrc --keepParent \
+            dist/ScrollSplit.app \
+            "$feed_dir/$archive_name"
+
+          generate_appcast=".build/app/artifacts/sparkle/Sparkle/bin/generate_appcast"
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$generate_appcast" \
+            --ed-key-file - \
+            --download-url-prefix "https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME/" \
+            --link "https://github.com/$GITHUB_REPOSITORY" \
+            --maximum-deltas 0 \
+            "$feed_dir"
+
+          cp "$feed_dir/$archive_name" "$release_dir/$archive_name"
+          cp "$feed_dir/appcast.xml" "$release_dir/appcast.xml"
+          cp dist/ScrollSplit.dmg "$release_dir/ScrollSplit.dmg"
+
+          grep -q 'sparkle:edSignature=' "$release_dir/appcast.xml"
+          grep -q 'sparkle-signatures:' "$release_dir/appcast.xml"
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | \
+            .build/app/artifacts/sparkle/Sparkle/bin/sign_update \
+            --verify \
+            --ed-key-file - \
+            "$release_dir/appcast.xml"
+          echo "RELEASE_DIR=$release_dir" >> "$GITHUB_ENV"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist)
+          gh release create "$GITHUB_REF_NAME" \
+            "$RELEASE_DIR/ScrollSplit-${version}.zip" \
+            "$RELEASE_DIR/ScrollSplit.dmg" \
+            "$RELEASE_DIR/appcast.xml" \
+            --title "ScrollSplit $version" \
+            --generate-notes

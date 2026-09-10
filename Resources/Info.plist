@@ -19,9 +19,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.2</string>
+    <string>1.3.0</string>
     <key>CFBundleVersion</key>
-    <string>2</string>
+    <string>3</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>LSMultipleInstancesProhibited</key>
@@ -34,5 +34,19 @@
     <string>ScrollSplit monitors scroll-wheel events so it can reverse vertical scrolling from an external mouse while leaving trackpad gestures unchanged.</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>SUAllowsAutomaticUpdates</key>
+    <false/>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUFeedURL</key>
+    <string>https://github.com/sksonip/ScrollSplit/releases/latest/download/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>pTNxuy4JternJsDyMUl516dgQ8bTK+3AnySgi5RbALs=</string>
+    <key>SURequireSignedFeed</key>
+    <true/>
+    <key>SUScheduledCheckInterval</key>
+    <real>2592000</real>
+    <key>SUVerifyUpdateBeforeExtraction</key>
+    <true/>
 </dict>
 </plist>

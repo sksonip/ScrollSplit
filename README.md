@@ -46,7 +46,7 @@ ScrollSplit runs as a lightweight background utility with no Dock icon and no me
 
 ### macOS security warning — what to expect and what to do
 
-ScrollSplit v1.2 is distributed outside the Mac App Store and is **not Developer ID notarized**. Because of this, macOS Gatekeeper will block the app the first time you open it. **This is expected behaviour — it does not mean macOS has detected malware.**
+ScrollSplit v1.3.0 is distributed outside the Mac App Store and is **not Developer ID notarized**. Because of this, macOS Gatekeeper will block the app the first time you open it. **This is expected behaviour — it does not mean macOS has detected malware.**
 
 When you try to open ScrollSplit, you will see a dialog similar to:
 
@@ -95,6 +95,7 @@ When you open ScrollSplit, the settings window shows the current state:
 
 - **Reverse Mouse Scrolling** — main on/off toggle. Enabling it activates the scroll intercept immediately if all permissions are granted.
 - **Launch at Login** — registers ScrollSplit as a login item so it starts automatically on every login. macOS may ask for confirmation the first time.
+- **Software Updates** — securely checks GitHub for a new release every 30 days. Use **Check for Updates…** to check immediately. Updates are installed only after you approve them.
 - **Closing the window does not quit ScrollSplit.** The scrolling service continues running in the background.
 - To reopen the settings window, launch ScrollSplit again from Applications (or the Dock/Finder).
 - **Quit ScrollSplit** fully stops the application and the scrolling service.
@@ -107,7 +108,7 @@ Verified by source-code audit:
 
 - **No telemetry** — ScrollSplit does not report usage or events to any service.
 - **No analytics** — no analytics framework or endpoint is present.
-- **No network communication** — ScrollSplit makes no outbound connections of any kind.
+- **Update checks only** — ScrollSplit contacts the GitHub-hosted Sparkle feed every 30 days, or when you click **Check for Updates…**. No usage information or scroll data is sent.
 - **No data collection** — scroll activity, timing, and device information are processed locally and immediately discarded. Nothing is stored beyond the on/off preference in your local `UserDefaults`.
 
 ---
@@ -135,6 +136,9 @@ make app
 # Build a debug app bundle
 make build
 
+# Build the release app and DMG
+make dmg
+
 # Run smoke tests (no macOS daemon or permissions required)
 make test
 
@@ -142,7 +146,7 @@ make test
 make clean
 ```
 
-The build script (`scripts/build-app.sh`) automatically selects a signing identity from your Keychain, preferring **Apple Development**, then **Developer ID Application**, and warns before falling back to ad-hoc signing. Set `REQUIRE_STABLE_SIGNING=1` to fail instead of using ad-hoc signing, or `CODESIGN_IDENTITY` to select a specific identity.
+The first build downloads the pinned Sparkle dependency. The build script (`scripts/build-app.sh`) embeds `Sparkle.framework`, uses Developer ID when available for release builds, and otherwise falls back to ad-hoc signing. Debug builds may use an Apple Development identity. Set `REQUIRE_STABLE_SIGNING=1` to fail instead, or `CODESIGN_IDENTITY` to select a specific identity.
 
 The built app bundle is written to `dist/ScrollSplit.app`. Copy it to `/Applications`, open it, and grant the required permissions as described under [Installation](#installation).
 
@@ -156,7 +160,37 @@ The built app bundle is written to `dist/ScrollSplit.app`. Copy it to `/Applicat
 - **Scroll classification:** Stateless classifier using phase, continuity, and delta fields on each `CGEvent`
 - **Preferences:** `UserDefaults` (local, no iCloud sync)
 - **Launch at Login:** `SMAppService.mainApp`
-- **No third-party dependencies**
+- **Software updates:** Sparkle 2 with EdDSA-signed archives hosted in GitHub Releases
+
+---
+
+## Publishing a Release
+
+Updates are published by `.github/workflows/release.yml`. The workflow runs only for a three-part version tag such as `v1.3.0`, verifies that the tag matches `Info.plist`, builds the app and DMG, signs the Sparkle ZIP, generates `appcast.xml`, and publishes all three files to GitHub Releases.
+
+Before publishing the first update, add the Sparkle private key to the repository once:
+
+```sh
+# Build once so the Sparkle tools are available.
+make app
+
+# Export the project key that matches SUPublicEDKey in Info.plist.
+.build/app/artifacts/sparkle/Sparkle/bin/generate_keys \
+  --account com.satishkumarsoni.ScrollSplit \
+  -x .sparkle-private-key
+
+# Store it as an encrypted GitHub Actions repository secret.
+gh secret set SPARKLE_PRIVATE_KEY < .sparkle-private-key
+```
+
+Delete `.sparkle-private-key` after the secret is stored. The filename is ignored by Git and the private key must never be committed. Then publish by updating both bundle versions, committing the change, and pushing the matching tag:
+
+```sh
+git tag v1.3.0
+git push origin v1.3.0
+```
+
+The GitHub Release ZIP is used for in-app updates. `ScrollSplit.dmg` remains the download for new installations. Versions older than 1.3.0 require one final manual installation before they can update themselves.
 
 ---
 

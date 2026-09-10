@@ -1,4 +1,5 @@
 import AppKit
+import Sparkle
 
 @main
 enum ScrollSplitApplication {
@@ -29,6 +30,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         permissionService: permissionService
     )
     private let loginItemService = LoginItemService()
+    private lazy var updaterController = SPUStandardUpdaterController(
+        startingUpdater: true,
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+    )
     private var settingsWindowController: SettingsWindowController?
     private var shouldShowSettingsOnLaunch = true
 
@@ -37,6 +43,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Accessing the controller starts Sparkle's scheduled update checks.
+        // The interval is configured in Info.plist and updates still require
+        // an explicit confirmation from the user before installation.
+        _ = updaterController
         reversalController.startAutomaticallyIfDesired()
 
         if shouldShowSettingsOnLaunch {
@@ -66,7 +76,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 reversalController: reversalController,
                 permissionService: permissionService,
                 loginItemService: loginItemService,
-                settings: settings
+                settings: settings,
+                updaterController: updaterController
             )
         }
 

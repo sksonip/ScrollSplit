@@ -37,3 +37,6 @@ jobs:
 
       - name: Runtime smoke tests
         run: make test
+
+      - name: Validate release configuration
+        run: make validate-release

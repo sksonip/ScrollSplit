@@ -1,4 +1,5 @@
 import AppKit
+import Sparkle
 
 @MainActor
 final class SettingsWindowController: NSWindowController, NSWindowDelegate {
@@ -6,12 +7,14 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     private let permissionService: PermissionService
     private let loginItemService: LoginItemService
     private let settings: AppSettings
+    private let updaterController: SPUStandardUpdaterController
 
     private let overallIcon = NSImageView()
     private let overallTitle = NSTextField(labelWithString: "")
     private let overallDetail = NSTextField(wrappingLabelWithString: "")
     private let reverseSwitch = NSSwitch()
     private let loginSwitch = NSSwitch()
+    private let checkForUpdatesButton = NSButton()
     private var permissionRows: [PermissionKind: PermissionRowView] = [:]
     private var hasCenteredWindow = false
 
@@ -19,15 +22,17 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         reversalController: ReverseScrollingController,
         permissionService: PermissionService,
         loginItemService: LoginItemService,
-        settings: AppSettings
+        settings: AppSettings,
+        updaterController: SPUStandardUpdaterController
     ) {
         self.reversalController = reversalController
         self.permissionService = permissionService
         self.loginItemService = loginItemService
         self.settings = settings
+        self.updaterController = updaterController
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 510, height: 590),
+            contentRect: NSRect(x: 0, y: 0, width: 510, height: 650),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
@@ -114,6 +119,10 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         refresh()
     }
 
+    @objc private func checkForUpdates() {
+        updaterController.checkForUpdates(nil)
+    }
+
     @objc private func quit() {
         NSApp.terminate(nil)
     }
@@ -173,6 +182,10 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         reverseSwitch.action = #selector(toggleReverseScrolling)
         loginSwitch.target = self
         loginSwitch.action = #selector(toggleLaunchAtLogin)
+        checkForUpdatesButton.title = "Check for Updates…"
+        checkForUpdatesButton.bezelStyle = .rounded
+        checkForUpdatesButton.target = self
+        checkForUpdatesButton.action = #selector(checkForUpdates)
 
         let reverseRow = makeSettingRow(
             title: "Reverse Mouse Scrolling",
@@ -185,10 +198,18 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             detail: "Start ScrollSplit silently when you sign in.",
             control: loginSwitch
         )
+        let updatesSeparator = separator()
+        let updatesRow = makeSettingRow(
+            title: "Software Updates",
+            detail: "Automatically check every 30 days, or check now.",
+            control: checkForUpdatesButton
+        )
         let preferences = NSStackView(views: [
             reverseRow,
             preferencesSeparator,
-            loginRow
+            loginRow,
+            updatesSeparator,
+            updatesRow
         ])
         preferences.orientation = .vertical
         preferences.alignment = .width
@@ -271,6 +292,11 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
                 constant: -28
             ),
             loginRow.widthAnchor.constraint(equalTo: preferences.widthAnchor, constant: -28),
+            updatesSeparator.widthAnchor.constraint(
+                equalTo: preferences.widthAnchor,
+                constant: -28
+            ),
+            updatesRow.widthAnchor.constraint(equalTo: preferences.widthAnchor, constant: -28),
             permissionsTitle.widthAnchor.constraint(equalTo: root.widthAnchor),
             permissionStack.widthAnchor.constraint(equalTo: root.widthAnchor),
             footer.widthAnchor.constraint(equalTo: root.widthAnchor)
@@ -319,6 +345,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     private func refresh() {
         reverseSwitch.state = reversalController.isEnabled ? .on : .off
         loginSwitch.state = loginItemService.isEnabled ? .on : .off
+        checkForUpdatesButton.isEnabled = updaterController.updater.canCheckForUpdates
 
         updateOverallState()
         permissionRows[.inputMonitoring]?.setGranted(
